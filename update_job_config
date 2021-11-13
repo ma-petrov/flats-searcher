@@ -1,0 +1,8 @@
+#!/bin/zsh
+
+sudo cp ./config.plist /Library/LaunchDaemons/com.cian.flat.searcher.plist
+
+sudo launchctl bootout system /Library/LaunchDaemons/com.cian.flat.searcher.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.cian.flat.searcher.plist
+
+launchctl print system | grep "com.cian.flat.searcher"

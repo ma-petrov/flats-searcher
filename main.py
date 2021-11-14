@@ -1,4 +1,5 @@
 import re
+import json
 import random
 import requests
 import datetime
@@ -6,24 +7,38 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
+# log types
+INFO = 'INFO'
+WARNING = 'WARNING'
+ERROR = 'ERROR'
+NOTYPE = 'NOTYPE'
+
+# paths and urls
 PATH = '/Users/petrov/Repositories/cian-flat-searcher/'
 CIAN_URL = 'https://www.cian.ru/cat.php'
 TELEGRAM_URL = 'https://api.telegram.org/bot'
 TOKEN = '2102130014:AAE3wac0wzuVVwj0DCY_jLlNjPqvaIECsNk'
 CHAT_ID = '-631809644'
 
-def add_log(text):
-    date = datetime.datetime.now().strftime(r'%d.%m.%Y %H:%M')
-    log = 'run at {} - {}'.format(date, text)
+def add_log(text, log_type=INFO):
+    '''
+    Print log to main.log file
+    '''
+
+    if log_type in [INFO, WARNING, ERROR]:
+        log = '{} - {}'.format(log_type, text)
+    else:
+        log = text
     if log[-1] != '\n': log += '\n'
-    with open(PATH + 'main.log', 'a') as f:
+    with open(PATH + 'logs/output.log', 'a') as f:
         f.write(log)
 
 def is_ids_new(flat_ids):
     '''
     Update data base of flat ids and returns new ids
     '''
-    fname = PATH + 'flat_ids.csv'
+
+    fname = PATH + 'data/flat_ids.csv'
     data = pd.read_csv(fname)
     data['flat_ids'] = data.flat_ids.apply(lambda x: str(x))
     new_ids = []
@@ -46,7 +61,7 @@ def reguest_with_proxy(url, params):
     Request with random proxy
     '''
 
-    fname = PATH + 'proxies.csv'
+    fname = PATH + 'data/proxies.csv'
     proxies = pd.read_csv(fname)
     n = random.randint(0, proxies.shape[0] - 1)
     protocol = proxies.loc[n, 'protocol']
@@ -57,41 +72,44 @@ def reguest_with_proxy(url, params):
         return response
     except:
         text = 'Proxy SSLError, address - {}'.format(address)
-        add_log(text)
+        add_log(text, log_type=ERROR)
         send_telegram(text)
         return None
 
-def get_ads_list():
+def load_params():
+    '''
+    get parameters of GET request from file
+    '''
+
+    with open(PATH + 'data/params.json', 'r') as f:
+        return json.loads(f.read())
+
+def generate_message(flat_ids):
+    '''
+    Generate message from flat_ids to links
+    '''
+
+    href = 'https://www.cian.ru/rent/flat/{}/'
+    hrefs = ['{} - {}'.format(i + 1, href.format(x)) for i, x in enumerate(flat_ids)]
+    return 'Новые объявления:\n' + '\n'.join(hrefs)
+
+def main():
     '''
     get list of all offers urls
     '''
-    
-    maxprice = 70000
-    params = {
-        'currency': 2,
-        'deal_type': 'rent',
-        'engine_version': 2,
-        'maxprice': maxprice,
-        'foot_min': 12,
-        'metro[0]': 12,
-        'metro[1]': 15,
-        'metro[2]': 68,
-        'metro[3]': 159,
-        'minarea': 50,
-        'offer_type': 'flat',
-        'room2': 1,
-        'room3': 1,
-        'sort': 'creation_date_desc',
-        'type': 4 # Long rent period
-    }
 
+    # logging start time
+    date = datetime.datetime.now()
+    add_log('\nRun at {}'.format(date.strftime(r'%d.%m.%Y %H:%M:%S')), log_type=NOTYPE)
+
+    params = load_params()
     response = reguest_with_proxy(CIAN_URL, params)
+    add_log('request URL is {}'.format(response.url))
 
     if bool(re.search(r'www.cian.ru/captcha', response.url)):
         text = 'cian блокирует запрос капчей'
         add_log(text)
-        h = int(now.strftime(r'%H'))
-        print(response.url)
+        h = int(date.strftime(r'%H'))
         if h > 7 and h < 23:
             send_telegram(text)
 
@@ -101,7 +119,8 @@ def get_ads_list():
         flat_ids = []
 
         try:
-            offers = soup.find(attrs={"data-name": "Offers"})
+            # parce
+            offers = soup.find(attrs={'data-name': 'Offers'})
             for tag in offers.findAll('a'):
                 if type(tag) == Tag and 'href' in tag.attrs:
                     href = tag['href']
@@ -109,24 +128,20 @@ def get_ads_list():
                         flat_ids.append(re.search(r'[0-9]+', href).group(0))
             add_log('number of parced offers - {}'.format(len(flat_ids)))
 
+            # get new offres from all recieved
             new_ids = is_ids_new(flat_ids)
 
+            # check if there is new offers and send message
             if len(new_ids) > 0:
-                add_log('найдены новые объявления')
-                href = 'https://www.cian.ru/rent/flat/{}/'
-                hrefs = ['{} - {}'.format(i + 1, href.format(x)) for i, x in enumerate(new_ids)]
-                text = 'Новые объявления:\n' + '\n'.join(hrefs)
-                send_telegram(text)
+                add_log('new offers were found')
+                send_telegram(generate_message(new_ids))
             else:
-                add_log('новых объявлений нет')
+                add_log('no new offers')
 
         except AttributeError as e:
-            if str(e) == "'NoneType' object has no attribute 'findAll'":
-                text = 'ошибка при парсинге'
-            else:
-                text = 'непредвиденная ошибка'
+            text = str(e)
             add_log(text)
             send_telegram(text)
 
 if __name__ == '__main__':
-    get_ads_list()
+    main()

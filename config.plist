@@ -25,8 +25,8 @@
         <dict><key>Minute</key><integer>55</integer></dict>
     </array>
     <key>StandardOutPath</key>
-    <string>/Users/petrov/Repositories/cian-flat-searcher/myjob.log</string>
+    <string>/Users/petrov/Repositories/cian-flat-searcher/logs/myjob.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/petrov/Repositories/cian-flat-searcher/myjob_error.log</string>
+    <string>/Users/petrov/Repositories/cian-flat-searcher/logs/myjob_error.log</string>
 </dict>
 </plist>

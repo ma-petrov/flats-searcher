@@ -66,15 +66,9 @@ def reguest_with_proxy(url, params):
     n = random.randint(0, proxies.shape[0] - 1)
     protocol = proxies.loc[n, 'protocol']
     address = proxies.loc[n, 'address']
-    try:
-        response = requests.get(url=url, params=params, proxies={protocol: address})
-        add_log('Successful request, used proxy address - {}'.format(address))
-        return response
-    except:
-        text = 'Proxy SSLError, address - {}'.format(address)
-        add_log(text, log_type=ERROR)
-        send_telegram(text)
-        return None
+    response = requests.get(url=url, params=params, proxies={protocol: address})
+    add_log('Successful request, used proxy address - {}'.format(address))
+    return response
 
 def load_params():
     '''

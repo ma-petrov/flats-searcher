@@ -1,0 +1,36 @@
+---
+name: prod-deployment
+on:
+  push:    
+    branches:
+      - 'main'
+
+jobs:
+  prod-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v4
+      - name: deploy
+        uses: appleboy/ssh-action@master
+        id: deploy
+        with:
+          host: ${{ secrets.DEPLOY_SERVER }}
+          username: django 
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euf -o pipefail
+            cd ~/routsweb
+            git fetch origin main
+            git checkout origin/main
+            docker compose --env-file=.prod.env up --build -d
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: "markdown"
+          disable_web_page_preview: true
+          message: |
+            `${{ github.actor }}` deployed new version:
+            Status: ${{ steps.deploy.outcome == 'success' && '✅' || '❌' }}

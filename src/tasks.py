@@ -4,6 +4,7 @@ from typing import Optional
 import requests
 from datetime import datetime
 
+from environs import Env
 from structlog import get_logger
 from bs4 import BeautifulSoup
 
@@ -14,17 +15,22 @@ from api import reguest_with_proxy
 logger = get_logger(__name__)
 
 
+env = Env()
+
+
 OOPS_MESSAGE = "Что-то пошло не так"
 offer_link_pattern = re.compile(r"www.cian.ru/rent/flat/([0-9]+)")
 summary_pattern = re.compile(r"Найдено (\d+) объявлени[еяй]")
 time_pattern = re.compile(r"\d{2}:\d{2}")
 
+DEBUG = env.bool("DEBUG", False)
+
 # paths and urls
 PATH = '/Users/petrov/Repositories/cian-flat-searcher/'
 CIAN_URL = 'https://www.cian.ru/cat.php'
 TELEGRAM_URL = 'https://api.telegram.org/bot'
-TOKEN = "5132928323:AAG4BKwfB0ueNQmbmsgnBHZsF_OnjZ3Y2Bc"
-CHAT_ID = "-1002236534227"
+TG_TOKEN = env.str("TG_TOKEN")
+TG_CHAT_ID = env.str("TG_CHAT_ID")
 
 
 def new_offers_task():
@@ -37,7 +43,7 @@ def new_offers_task():
         if bool(re.search(r'www.cian.ru/captcha', response.url)):
             logger.error("CIAN_BLOCKED_REQUEST")
             if (hour := datetime.now().hour) > 7 and hour < 23:
-                _send_telegram("Циан заблокировал запрос капчей")
+                send_telegram("Циан заблокировал запрос капчей")
             return
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -70,7 +76,7 @@ def new_offers_task():
 
     except Exception:
         logger.exception("PARSE_ERROR")
-        _send_telegram(OOPS_MESSAGE)
+        send_telegram(OOPS_MESSAGE)
 
 
 def _get_offers_count(soup: BeautifulSoup) -> int | None:
@@ -134,15 +140,15 @@ def _send_offers(offer_ids: list[str]):
         f"{i + 1} - https://www.cian.ru/rent/flat/{o}/"
         for i, o in enumerate(offer_ids)
     )
-    _send_telegram(f"Новые объявления\n{offers}")
+    send_telegram(f"Новые объявления\n{offers}")
 
 
-def _send_telegram(text: str):    
+def send_telegram(text: str):    
     class TelegramError(Exception):
         ...
 
-    url = TELEGRAM_URL + TOKEN + '/sendMessage'
-    data = {'chat_id': CHAT_ID, 'text': text}
+    url = TELEGRAM_URL + TG_TOKEN + '/sendMessage'
+    data = {'chat_id': TG_CHAT_ID, 'text': text}
     response = requests.post(url, data=data)
     
     if response.status_code != 200:

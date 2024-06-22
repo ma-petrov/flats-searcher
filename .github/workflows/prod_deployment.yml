@@ -1,4 +1,3 @@
----
 name: prod-deployment
 on:
   push:    
@@ -20,7 +19,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -euf -o pipefail
-            cd ~/routsweb
+            cd ~/flats-searcher
             git fetch origin main
             git checkout origin/main
             docker compose --env-file=.prod.env up --build -d

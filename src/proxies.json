@@ -1,0 +1,44 @@
+{
+    "servers": [
+        {
+            "protocol": "http",
+            "address": "http://188.133.173.21:8080"
+        },
+        {
+            "protocol": "http",
+            "address": "http://89.109.252.12:8080"
+        },
+        {
+            "protocol": "http",
+            "address": "http://51.83.232.105:8080"
+        },
+        {
+            "protocol": "http",
+            "address": "http://185.174.138.19:80"
+        },
+        {
+            "protocol": "http",
+            "address": "http://185.221.160.176:80"
+        },
+        {
+            "protocol": "http",
+            "address": "http://185.221.161.85:80"
+        },
+        {
+            "protocol": "http",
+            "address": "http://185.200.190.211:80"
+        },
+        {
+            "protocol": "http",
+            "address": "http://176.197.223.206:3128"
+        },
+        {
+            "protocol": "http",
+            "address": "http://176.74.9.62:8080"
+        },
+        {
+            "protocol": "http",
+            "address": "http://91.197.10.22:8888"
+        }
+    ]
+}

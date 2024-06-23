@@ -15,7 +15,7 @@ jobs:
         id: deploy
         with:
           host: ${{ secrets.DEPLOY_SERVER }}
-          username: django 
+          username: git 
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -euf -o pipefail

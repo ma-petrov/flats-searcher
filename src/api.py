@@ -4,6 +4,8 @@ from requests import get, Response
 from pydantic import BaseModel
 from structlog import get_logger
 
+from telegram import send_telegram
+
 
 logger = get_logger(__name__)
 
@@ -28,10 +30,15 @@ def reguest_with_proxy(url: str, params: dict[str, str]) -> Response | None:
 
     random_proxy_number = randint(0, len(proxy_config.servers) - 1)
     proxy = proxy_config.servers[random_proxy_number]
-    response = get(url=url, params=params, proxies={proxy.protocol: proxy.address})
+
+    try:
+        response = get(url=url, params=params, proxies={proxy.protocol: proxy.address})
+    except Exception:
+        logger.exception("CIAN_REQUEST_ERROR", proxy_address=proxy.address)
+        send_telegram(f"CIAN request error proxy_address={proxy.address}")
 
     if response.status_code != 200:
-        logger.error("CIAN_REQUEST_ERROR", response_text=response.text)
+        logger.error("CIAN_RESPONSE_ERROR", response_text=response.text)
         return response
     
     logger.info("CIAN_REQUEST_DONE", url=response.url, proxy_address=proxy.address)

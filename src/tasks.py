@@ -1,36 +1,23 @@
 import re
 import json
 from typing import Optional
-import requests
 from datetime import datetime
 
-from environs import Env
 from structlog import get_logger
 from bs4 import BeautifulSoup
 
 from repository import BaseRepository, PandasRepository
 from api import reguest_with_proxy
+from telegram import send_telegram
+from conf import CIAN_URL, OOPS_MESSAGE
 
 
 logger = get_logger(__name__)
 
 
-env = Env()
-
-
-OOPS_MESSAGE = "Что-то пошло не так"
 offer_link_pattern = re.compile(r"www.cian.ru/rent/flat/([0-9]+)")
 summary_pattern = re.compile(r"Найдено (\d+) объявлени[еяй]")
 time_pattern = re.compile(r"\d{2}:\d{2}")
-
-DEBUG = env.bool("DEBUG", False)
-
-# paths and urls
-PATH = '/Users/petrov/Repositories/cian-flat-searcher/'
-CIAN_URL = 'https://www.cian.ru/cat.php'
-TELEGRAM_URL = 'https://api.telegram.org/bot'
-TG_TOKEN = env.str("TG_TOKEN")
-TG_CHAT_ID = env.str("TG_CHAT_ID")
 
 
 def new_offers_task():
@@ -141,19 +128,6 @@ def _send_offers(offer_ids: list[str]):
         for i, o in enumerate(offer_ids)
     )
     send_telegram(f"Новые объявления\n{offers}")
-
-
-def send_telegram(text: str):    
-    class TelegramError(Exception):
-        ...
-
-    url = TELEGRAM_URL + TG_TOKEN + '/sendMessage'
-    data = {'chat_id': TG_CHAT_ID, 'text': text}
-    response = requests.post(url, data=data)
-    
-    if response.status_code != 200:
-        logger.error("TELEGRAM_ERROR")
-        raise TelegramError(response.text)
 
 
 def _load_params():

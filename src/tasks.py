@@ -21,8 +21,13 @@ time_pattern = re.compile(r"\d{2}:\d{2}")
 
 
 def new_offers_task():
+    get_new_offers("params_70.json", "Однушки-двушки 70к")
+    get_new_offers("params_100.json", "Двушки-трешки 100к")
+
+
+def get_new_offers(params_file: str, filter_name: str):
     try:
-        params = _load_params()
+        params = _load_params(params_file)
         logger.info("START_NEW_OFFERS_TASK", params=params)
 
         response = reguest_with_proxy(CIAN_URL, params)
@@ -58,8 +63,7 @@ def new_offers_task():
             # date_container = article.find("div", attrs={"data-name": "TimeLabel"})
             # pub_date = date_container.find("span", text=time_pattern).text
 
-
-        _save_and_send_new_offers(offer_ids)
+        _save_and_send_new_offers(offer_ids, filter_name)
 
     except Exception:
         logger.exception("PARSE_ERROR")
@@ -97,6 +101,7 @@ def _get_offers_count(soup: BeautifulSoup) -> int | None:
 
 def _save_and_send_new_offers(
     ids: list[str | None],
+    filter_name: str,
     repository: Optional[BaseRepository] = None,
 ):
     """Вставляет новые id и отправляет в телеграм.
@@ -114,7 +119,7 @@ def _save_and_send_new_offers(
         return
     
     try:
-        _send_offers(offer_ids)
+        _send_offers(offer_ids, filter_name)
         logger.info("NEW_OFFERS_SENT", offer_ids=offer_ids)
     except Exception:
         logger.exception("OFFERS_SENDING_ERROR")
@@ -122,14 +127,14 @@ def _save_and_send_new_offers(
         repository.update_sent(offer_ids)
 
 
-def _send_offers(offer_ids: list[str]):
+def _send_offers(offer_ids: list[str], filter_name: str):
     offers = "\n".join(
         f"{i + 1} - https://www.cian.ru/rent/flat/{o}/"
         for i, o in enumerate(offer_ids)
     )
-    send_telegram(f"Новые объявления\n{offers}")
+    send_telegram(f"Новые объявления по фильтру `{filter_name}`\n{offers}")
 
 
-def _load_params():
-    with open("params.json", "r") as f:
+def _load_params(params_file: str) -> dict:
+    with open(params_file, "r") as f:
         return json.loads(f.read())

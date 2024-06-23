@@ -1,5 +1,9 @@
 version: "3.9"
 
+volumes:
+  repository:
+
+
 services:
   bot:
     build:
@@ -9,3 +13,5 @@ services:
       - TG_TOKEN=${TG_TOKEN}
       - TG_CHAT_ID=${TG_CHAT_ID}
     command: ["python", "scheduler.py"]
+    volumes:
+      - repository:/home/git/flats-searcher/src/data

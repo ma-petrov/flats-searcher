@@ -18,7 +18,6 @@ jobs:
           username: git 
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -euf -o pipefail
             cd ~/flats-searcher
             git fetch origin main
             git checkout origin/main

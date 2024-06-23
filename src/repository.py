@@ -16,7 +16,7 @@ class BaseRepository:
 
 class PandasRepository(BaseRepository):
     def __init__(self, filename: Optional[str] = None):
-        self.filename = filename or "repository.csv"
+        self.filename = filename or "data/repository.csv"
 
     def insert(self, ids: list[str]):
         if not ids:

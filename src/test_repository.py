@@ -6,7 +6,7 @@ from pandas import DataFrame, read_csv
 from repository import PandasRepository
 
 
-REPOSITORY_FILE = "repository.csv"
+REPOSITORY_FILE = "data/repository.csv"
 
 
 def dataframes_are_equal(a: DataFrame, b: DataFrame):
@@ -26,7 +26,7 @@ def dataframes_are_equal(a: DataFrame, b: DataFrame):
 
 def get_actual() -> DataFrame:
     return read_csv(
-        "repository.csv",
+        REPOSITORY_FILE,
         index_col=[0],
         dtype={"id": str, "is_sent": bool}
     )

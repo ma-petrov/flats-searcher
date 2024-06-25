@@ -3,7 +3,6 @@ from random import randint
 from requests import get, Response
 from pydantic import BaseModel
 from structlog import get_logger
-from urllib3.exceptions import MaxRetryError
 
 from telegram import send_telegram
 
@@ -34,7 +33,7 @@ def reguest_with_proxy(url: str, params: dict[str, str]) -> Response | None:
 
     try:
         response = get(url=url, params=params, proxies={proxy.protocol: proxy.address})
-    except MaxRetryError:
+    except ConnectionError:
         logger.error("CIAN_CONNECTION_ERROR")
         send_telegram("Ошибка соединения")
         return None

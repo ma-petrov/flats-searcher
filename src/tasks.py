@@ -112,9 +112,9 @@ def _save_and_send_new_offers(
     обновляет статус всем отправленным офферам на is_sent == True.
     """
     repository = repository or PandasRepository()
-    repository.insert(ids)
+    repository.insert(ids, "cian")
     
-    if not (offer_ids := repository.get_not_sent()):
+    if not (offer_ids := repository.get_not_sent("cian")):
         logger.info("ALL_OFFERS_SENT")
         return
     
@@ -124,7 +124,7 @@ def _save_and_send_new_offers(
     except Exception:
         logger.exception("OFFERS_SENDING_ERROR")
     else:
-        repository.update_sent(offer_ids)
+        repository.update_sent(offer_ids, "cian")
 
 
 def _send_offers(offer_ids: list[str], filter_name: str):

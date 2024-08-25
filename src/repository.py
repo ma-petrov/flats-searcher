@@ -18,25 +18,30 @@ class PandasRepository(BaseRepository):
     def __init__(self, filename: Optional[str] = None):
         self.filename = filename or "data/repository.csv"
 
-    def insert(self, ids: list[str]):
-        if not ids:
+    def insert(self, ids: list[str], service: str):
+        if (count := len(ids)) == 0:
             return
         
         data = self._load_data()
         data = concat([
             data,
-            DataFrame({"id": ids, "is_sent": [False] * len(ids)})
+            DataFrame({
+                "id": ids,
+                "is_sent": [False] * count,
+                "service": [service] * count, 
+            })
         ])
-        data.drop_duplicates(subset=["id"], inplace=True)
+        data.drop_duplicates(subset=["id", "service"], inplace=True)
         data.to_csv(self.filename)
 
-    def update_sent(self, ids: list[str]):
+    def update_sent(self, ids: list[str], service: str):
         if not ids:
             return
 
         data = self._load_data()
         data["is_sent"] = data.apply(
-            lambda r: r.is_sent or r.id in ids, axis=1
+            lambda r: r.is_sent or r.id in ids and r.service == service,
+            axis=1,
         )
         data.to_csv(self.filename)
 
@@ -49,7 +54,7 @@ class PandasRepository(BaseRepository):
             return read_csv(
                 self.filename,
                 index_col=[0],
-                dtype={"id": str, "is_sent": bool}
+                dtype={"id": str, "is_sent": bool, "service": str}
             )
         except FileNotFoundError:
-            return DataFrame(columns=["id", "is_sent"])
+            return DataFrame(columns=["id", "is_sent", "service"])

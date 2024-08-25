@@ -15,7 +15,7 @@ jobs:
         id: deploy
         with:
           host: ${{ secrets.DEPLOY_SERVER }}
-          username: git 
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/flats-searcher

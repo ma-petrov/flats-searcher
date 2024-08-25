@@ -107,7 +107,9 @@ def test_get_not_sent(
     updated_dataframe: DataFrame,
 ):
     repository.insert(["0", "1", "2"], "cian")
-    assert repository.get_not_sent() == ["0", "1", "2"]
+    repository.insert(["3", "4", "5"], "mir_kvartir")
+
+    assert repository.get_not_sent("cian") == ["0", "1", "2"]
 
 
 def test_update_not_sent__partialy(

@@ -4,13 +4,13 @@ from pandas import DataFrame, concat, read_csv
 
 
 class BaseRepository:
-    def insert(self, ids: list[str]):
+    def insert(self, ids: list[str], service: str):
         """Вставляет новые id квартир, проставляет статус is_sent - False."""
 
-    def update_sent(self, ids: list[str]):
+    def update_sent(self, ids: list[str], service: str):
         """Обновляет все отправленные id в статус is_sent == True."""
 
-    def get_not_sent(self) -> list[str | None]:
+    def get_not_sent(self, service: str) -> list[str | None]:
         """Возвращет все неотправленные id квартир."""
 
 
@@ -45,9 +45,14 @@ class PandasRepository(BaseRepository):
         )
         data.to_csv(self.filename)
 
-    def get_not_sent(self) -> list[str | None]:
+    def get_not_sent(self, service: str) -> list[str | None]:
         data = self._load_data()
-        return list(data[data.is_sent.apply(lambda x: not x)].id)
+        return list(
+            data[
+                data.is_sent.apply(lambda x: not x)
+                & (data.service == service)
+            ].id
+        )
 
     def _load_data(self) -> DataFrame:
         try:

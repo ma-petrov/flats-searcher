@@ -1,4 +1,5 @@
 from json import loads
+import json
 from random import randint
 from requests import get, Response
 from pydantic import BaseModel
@@ -45,3 +46,21 @@ def reguest_with_proxy(url: str, params: dict[str, str]) -> Response | None:
     logger.info("CIAN_REQUEST_DONE", url=response.url, proxy_address=proxy.address)
 
     return response
+
+
+def update_proxy_metric(proxy: str, is_error: bool):
+    try:
+        with open("proxy_metric.json", "r") as f:
+            metrics = json.loads(f.read())
+    except FileNotFoundError:
+        metrics = {}
+
+    proxy_metric = metrics.get(proxy) or {"total": 0, "error": 0}
+    proxy_metric["total"] += 1
+    if is_error:
+        proxy_metric["error"] += 1
+
+    metrics[proxy] = proxy_metric
+
+    with open("proxy_metric.json", "w") as f:
+        metrics = json.loads(f.read())

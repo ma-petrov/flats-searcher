@@ -22,7 +22,8 @@ time_pattern = re.compile(r"\d{2}:\d{2}")
 
 def new_offers_task():
     # get_new_offers("params_70.json", "Однушки-двушки 70к")
-    get_new_offers("params_100.json", "Двушки-трешки 100к")
+    # get_new_offers("params_100.json", "Двушки-трешки 100к")
+    get_new_offers("params_100_new.json", "Двушки-трешки 100к")
 
 
 def get_new_offers(params_file: str, filter_name: str):

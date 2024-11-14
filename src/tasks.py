@@ -129,11 +129,8 @@ def _save_and_send_new_offers(
 
 
 def _send_offers(offer_ids: list[str], filter_name: str):
-    offers = "\n".join(
-        f"{i + 1} - https://www.cian.ru/rent/flat/{o}/"
-        for i, o in enumerate(offer_ids)
-    )
-    send_telegram(f"Новые объявления по фильтру `{filter_name}`\n{offers}")
+    for offer_id in offer_ids:
+        send_telegram(f"https://www.cian.ru/rent/flat/{offer_id}/")
 
 
 def _load_params(params_file: str) -> dict:

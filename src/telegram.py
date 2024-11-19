@@ -8,6 +8,10 @@ from conf import TELEGRAM_URL, TG_TOKEN, TG_CHAT_ID, DEBUG
 logger = get_logger(__name__)
 
 
+class TelegramError(Exception):
+    pass
+
+
 def send_telegram(text: str):
     url = TELEGRAM_URL + TG_TOKEN + '/sendMessage'
     data = {'chat_id': TG_CHAT_ID, 'text': text}
@@ -20,8 +24,11 @@ def send_telegram(text: str):
         response = requests.post(url, data=data)
     except ConnectionError:
         logger.error("TELEGRAM_ERROR", type="CONNECTION")
+        raise TelegramError
     except Exception:
         logger.exception("TELEGRAM_ERROR", type="UNKNOWN")
+        raise TelegramError
     
     if response.status_code != 200:
         logger.error("TELEGRAM_ERROR", type="RESPONSE")
+        raise TelegramError

@@ -1,3 +1,5 @@
-from tasks import new_offers_task
+import asyncio
 
-new_offers_task()
+from tasks import get_new_offers
+
+asyncio.run(get_new_offers("params_100_new.json", "Двушки-трешки 100к"))

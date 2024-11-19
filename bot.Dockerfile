@@ -23,7 +23,7 @@ COPY poetry.lock pyproject.toml /flats-searcher/
 # Project initialization:
 RUN poetry install --no-dev
 
-# Creating folders, and files for a project:
+# Create folders, and files for a project:
 COPY . /flats-searcher/
 
 WORKDIR /flats-searcher/src

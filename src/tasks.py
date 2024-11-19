@@ -1,4 +1,3 @@
-import asyncio
 import re
 import json
 
@@ -23,11 +22,9 @@ summary_pattern = re.compile(r"Найдено (\d+) объявлени[еяй]")
 time_pattern = re.compile(r"\d{2}:\d{2}")
 
 
-def new_offers_task():
-    asyncio.run(get_new_offers("params_100_new.json", "Двушки-трешки 100к"))
+async def get_new_offers():
+    params_file = "params_100_new.json"
 
-
-async def get_new_offers(params_file: str, filter_name: str):
     try:
         params = _load_params(params_file)
         logger.info("START_NEW_OFFERS_TASK", params=params)

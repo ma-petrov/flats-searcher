@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Optional
 
-from sqlalchemy import ForeignKey, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import (

@@ -1,36 +1,38 @@
+import asyncio
 import re
 import json
-from typing import Optional
+
 from datetime import datetime
 
 from structlog import get_logger
 from bs4 import BeautifulSoup
 
-from repository import BaseRepository, PandasRepository
+from models import Offer
 from api import reguest_with_proxy
-from telegram import send_telegram
-from conf import CIAN_URL, OOPS_MESSAGE
+from telegram import TelegramError, send_telegram
+from conf import CIAN_URL, OOPS_MESSAGE, FEE_THRESHOLD
+from models import User
 
 
 logger = get_logger(__name__)
 
 
-offer_link_pattern = re.compile(r"www.cian.ru/rent/flat/([0-9]+)")
+offer_link_pattern = re.compile(r"https://www.cian.ru/rent/flat/([0-9]+)")
+offer_fee_pattern = re.compile(r"(\d+)%")
 summary_pattern = re.compile(r"Найдено (\d+) объявлени[еяй]")
 time_pattern = re.compile(r"\d{2}:\d{2}")
 
 
 def new_offers_task():
-    # get_new_offers("params_70.json", "Однушки-двушки 70к")
-    get_new_offers("params_100.json", "Двушки-трешки 100к")
+    asyncio.run(get_new_offers("params_100_new.json", "Двушки-трешки 100к"))
 
 
-def get_new_offers(params_file: str, filter_name: str):
+async def get_new_offers(params_file: str, filter_name: str):
     try:
         params = _load_params(params_file)
         logger.info("START_NEW_OFFERS_TASK", params=params)
 
-        response = reguest_with_proxy(CIAN_URL, params)
+        response = reguest_with_proxy(CIAN_URL, params=params)
 
         if bool(re.search(r'www.cian.ru/captcha', response.url)):
             logger.error("CIAN_BLOCKED_REQUEST")
@@ -43,7 +45,7 @@ def get_new_offers(params_file: str, filter_name: str):
         if (offers_count := _get_offers_count(soup)) is None:
             return
 
-        offer_ids = []
+        offers = []
         articles = soup.findAll("article", attrs={"data-name": "CardComponent"})
         articles = articles[:offers_count]
         logger.info("ARTICLES_PARSED", articles_number=len(articles))
@@ -56,18 +58,38 @@ def get_new_offers(params_file: str, filter_name: str):
                 logger.error("INCORRECT_LINK", offer_link=offer_link)
                 continue
 
-            offer_id = searched.group(1)
-            offer_ids.append(offer_id)
+            link = searched.group(0)
+            offer = _parse_offer(link)
+            offer.offer_id = searched.group(1)
+
+            if offer.fee is not None and offer.fee > FEE_THRESHOLD:
+                logger.info("TOO_HIGH_FEE", offer=offer)
+                continue
+
+            offers.append(offer)
 
             # TODO: добавить поддержку сохранения даты публикации
             # date_container = article.find("div", attrs={"data-name": "TimeLabel"})
             # pub_date = date_container.find("span", text=time_pattern).text
 
-        _save_and_send_new_offers(offer_ids, filter_name)
+        await _save_and_send_new_offers(offers)
 
     except Exception:
         logger.exception("PARSE_ERROR")
         send_telegram(OOPS_MESSAGE)
+
+
+def _parse_offer(link: str) -> Offer:
+    # response = reguest_with_proxy(offer.link)
+    # offer_soup = BeautifulSoup(response.text, 'html.parser')
+
+    # for offer_fact_item in offer_soup.findAll("div", attrs={"data-name": "OfferFactItem"}):
+    #     if "Комисси" in offer_fact_item.text:
+    #         fee_text = list(offer_fact_item)[2].text
+    #         if (fee := offer_fee_pattern.search(fee_text)) is not None:
+    #             offer.fee = int(fee.group(1))
+
+    return Offer(link=link, fee=0)
 
 
 def _get_offers_count(soup: BeautifulSoup) -> int | None:
@@ -99,40 +121,29 @@ def _get_offers_count(soup: BeautifulSoup) -> int | None:
     return int(group[1])
 
 
-def _save_and_send_new_offers(
-    ids: list[str | None],
-    filter_name: str,
-    repository: Optional[BaseRepository] = None,
-):
-    """Вставляет новые id и отправляет в телеграм.
-    
-    Производит вставку новых id со статусом is_sent == False (если список ids
-    пустой, то метод insert пропустит внутри себя вставку). Выбирает еще не
-    отправленные id, пытается выполнить отправку. Если отправка была успешная,
-    обновляет статус всем отправленным офферам на is_sent == True.
+async def _save_and_send_new_offers(offers: list[Offer | None]):
+    """Добавляет новые объявления в БД и отправляет в телеграм.
+
+    Обновляет указатель на последнее отправленное объявление.
+    Если в процессе отправки возникла ошибка, то указатель не
+    обновляется.
     """
-    repository = repository or PandasRepository()
-    repository.insert(ids, "cian")
-    
-    if not (offer_ids := repository.get_not_sent("cian")):
-        logger.info("ALL_OFFERS_SENT")
-        return
-    
+    if offers:
+        await Offer.add_all(offers)
+
+    user = await User.get()
+    offers = await user.get_new_offers()
+
     try:
-        _send_offers(offer_ids, filter_name)
-        logger.info("NEW_OFFERS_SENT", offer_ids=offer_ids)
-    except Exception:
-        logger.exception("OFFERS_SENDING_ERROR")
-    else:
-        repository.update_sent(offer_ids, "cian")
+        _send_offers(offers)
+        await user.set_last_sent_offer_id(offers[-1].id)
+    except TelegramError:
+        pass
 
 
-def _send_offers(offer_ids: list[str], filter_name: str):
-    offers = "\n".join(
-        f"{i + 1} - https://www.cian.ru/rent/flat/{o}/"
-        for i, o in enumerate(offer_ids)
-    )
-    send_telegram(f"Новые объявления по фильтру `{filter_name}`\n{offers}")
+def _send_offers(offers: list[tuple[Offer, ...]]):
+    for offer in offers:
+        send_telegram(f"{offer.link}\nКомиссия: {offer.fee or 0}%")
 
 
 def _load_params(params_file: str) -> dict:

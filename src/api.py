@@ -1,6 +1,7 @@
 from json import loads
 import json
 from random import randint
+from typing import Optional
 from requests import get, Response
 from pydantic import BaseModel
 from structlog import get_logger
@@ -22,10 +23,10 @@ class ProxyConfig(BaseModel):
     servers: list[Server]
 
 
-def reguest_with_proxy(url: str, params: dict[str, str]) -> Response | None:
-    '''
-    Request with random proxy
-    '''
+def reguest_with_proxy(
+    url: str,
+    params: Optional[dict[str, str]] = None
+) -> Response | None:
     with open(PROXI_CONFIG_PATH, "r") as f:
         proxy_config = ProxyConfig(**loads(f.read()))
 

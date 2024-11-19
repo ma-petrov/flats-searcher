@@ -21,7 +21,7 @@ jobs:
             cd ~/flats-searcher
             git fetch origin main
             git checkout origin/main
-            docker compose --env-file=.prod.env up --build -d
+            docker compose --env-file=.prod.env --profile app up --build -d
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
         with:

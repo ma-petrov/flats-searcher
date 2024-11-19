@@ -1,17 +1,42 @@
 version: "3.9"
 
 volumes:
-  repository:
+  pgdata:
 
+x-base: &base
+  build:
+    context: .
+    dockerfile: bot.Dockerfile
+  environment:
+    - TG_TOKEN=${TG_TOKEN}
+    - TG_CHAT_ID=${TG_CHAT_ID}
+    - POSTGRES_HOST=${POSTGRES_HOST:-database}
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bot}
 
 services:
   bot:
-    build:
-      context: .
-      dockerfile: bot.Dockerfile
+    <<: *base
+    profiles: [app]
+    command: sh -c "alembic upgrade head && python scheduler.py"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  database:
+    image: postgres:latest
     environment:
-      - TG_TOKEN=${TG_TOKEN}
-      - TG_CHAT_ID=${TG_CHAT_ID}
-    command: ["python", "scheduler.py"]
+      - POSTGRES_DB=bot
+      - POSTGRES_USER=bot
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bot}
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - repository:/home/git/flats-searcher/src/data
+      - pgdata:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped

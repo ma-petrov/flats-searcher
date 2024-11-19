@@ -47,6 +47,8 @@ async def get_new_offers():
         articles = articles[:offers_count]
         logger.info("ARTICLES_PARSED", articles_number=len(articles))
 
+        # Парсинг ссылок офферов
+        offer_links = {}
         for article in articles:
             offer_card = article.find("div", attrs={"data-testid": "offer-card"})
             offer_link = offer_card.find("a")["href"]
@@ -55,9 +57,18 @@ async def get_new_offers():
                 logger.error("INCORRECT_LINK", offer_link=offer_link)
                 continue
 
-            link = searched.group(0)
-            offer = _parse_offer(link)
-            offer.offer_id = searched.group(1)
+            offer_links[searched.group(1)] = searched.group(0)
+
+        # Ислключение офферов, которые уже есть в БД
+        new_offer_ids = await Offer.filter_old_offers(list(offer_links.keys()))
+        if not new_offer_ids:
+            logger.info("NO_NEW_OFFERS")
+            return
+        
+        # Парсинг новых офферов
+        for offer_id, offer_link in offer_links.items():
+            offer = _parse_offer(offer_link)
+            offer.offer_id = offer_id
 
             if offer.fee is not None and offer.fee > FEE_THRESHOLD:
                 logger.info("TOO_HIGH_FEE", offer=offer)

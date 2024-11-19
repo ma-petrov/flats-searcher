@@ -51,6 +51,13 @@ class Offer(BaseModel):
     async def get_last_offer_id(cls):
         query = select(func.max(cls.id))
         return await cls.execute(query)
+    
+    @classmethod
+    async def filter_old_offers(cls, offer_ids: list[str]) -> list[str | None]:
+        query = select(cls.offer_id).where(cls.offer_id.in_(offer_ids))
+        result = await cls.execute(query)
+        old_offers = result.scalars().all()
+        return list(set(offer_ids) - set(old_offers))
 
 
 class User(BaseModel):

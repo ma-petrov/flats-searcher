@@ -53,7 +53,7 @@ class Offer(BaseModel):
         return await cls.execute(query)
     
     @classmethod
-    async def filter_old_offers(cls, offer_ids: list[str]) -> list[str | None]:
+    async def filter_new_offers(cls, offer_ids: list[str]) -> list[str | None]:
         query = select(cls.offer_id).where(cls.offer_id.in_(offer_ids))
         result = await cls.execute(query)
         old_offers = result.scalars().all()

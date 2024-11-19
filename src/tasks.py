@@ -60,10 +60,12 @@ async def get_new_offers():
             offer_links[searched.group(1)] = searched.group(0)
 
         # Ислключение офферов, которые уже есть в БД
-        new_offer_ids = await Offer.filter_old_offers(list(offer_links.keys()))
+        new_offer_ids = await Offer.filter_new_offers(list(offer_links.keys()))
         if not new_offer_ids:
             logger.info("NO_NEW_OFFERS")
             return
+        
+        offer_links = {k: v for k, v in offer_links.items() if k in new_offer_ids}
         
         # Парсинг новых офферов
         for offer_id, offer_link in offer_links.items():
@@ -88,16 +90,18 @@ async def get_new_offers():
 
 
 def _parse_offer(link: str) -> Offer:
-    # response = reguest_with_proxy(offer.link)
-    # offer_soup = BeautifulSoup(response.text, 'html.parser')
+    offer = Offer(link=link, fee=0)
 
-    # for offer_fact_item in offer_soup.findAll("div", attrs={"data-name": "OfferFactItem"}):
-    #     if "Комисси" in offer_fact_item.text:
-    #         fee_text = list(offer_fact_item)[2].text
-    #         if (fee := offer_fee_pattern.search(fee_text)) is not None:
-    #             offer.fee = int(fee.group(1))
+    response = reguest_with_proxy(link)
+    offer_soup = BeautifulSoup(response.text, 'html.parser')
 
-    return Offer(link=link, fee=0)
+    for offer_fact_item in offer_soup.findAll("div", attrs={"data-name": "OfferFactItem"}):
+        if "Комисси" in offer_fact_item.text:
+            fee_text = list(offer_fact_item)[2].text
+            if (fee := offer_fee_pattern.search(fee_text)) is not None:
+                offer.fee = int(fee.group(1))
+
+    return offer
 
 
 def _get_offers_count(soup: BeautifulSoup) -> int | None:

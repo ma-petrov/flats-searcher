@@ -12,7 +12,7 @@ class TelegramError(Exception):
     pass
 
 
-def send_telegram(text: str):
+async def send_telegram(text: str):
     url = TELEGRAM_URL + TG_TOKEN + '/sendMessage'
     data = {'chat_id': TG_CHAT_ID, 'text': text}
 
@@ -30,5 +30,5 @@ def send_telegram(text: str):
         raise TelegramError
     
     if response.status_code != 200:
-        logger.error("TELEGRAM_ERROR", type="RESPONSE")
+        logger.error("TELEGRAM_ERROR", type="RESPONSE", json=response.json())
         raise TelegramError

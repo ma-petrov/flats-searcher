@@ -23,7 +23,7 @@ async def main():
     try:
         logger.info("START_SCHEDULING")
         if not DEBUG:
-            await send_telegram("Начинаем парсить...")
+            send_telegram("Начинаем парсить...")
 
         scheduler.start()
         
@@ -37,7 +37,7 @@ async def main():
     except Exception as e:
         logger.error(f"Error in scheduler: {e}")
         if not DEBUG:
-            await send_telegram(f"Error in scheduler: {e}")
+            send_telegram(f"Error in scheduler: {e}")
         raise
 
 if __name__ == "__main__":

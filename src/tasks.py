@@ -61,11 +61,11 @@ async def get_new_offers():
 
         # Ислключение офферов, которые уже есть в БД
         new_offer_ids = await Offer.filter_new_offers(list(offer_links.keys()))
-        if not new_offer_ids:
+        offer_links = {k: v for k, v in offer_links.items() if k in new_offer_ids}
+
+        if not offer_links:
             logger.info("NO_NEW_OFFERS")
             return
-        
-        offer_links = {k: v for k, v in offer_links.items() if k in new_offer_ids}
         
         # Парсинг новых офферов
         for offer_id, offer_link in offer_links.items():
@@ -133,7 +133,7 @@ def _get_offers_count(soup: BeautifulSoup) -> int | None:
     return int(group[1])
 
 
-async def _save_and_send_new_offers(offers: list[Offer | None]):
+async def _save_and_send_new_offers(offers: list[Offer]):
     """Добавляет новые объявления в БД и отправляет в телеграм.
 
     Обновляет указатель на последнее отправленное объявление.

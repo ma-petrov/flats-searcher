@@ -144,11 +144,12 @@ async def _save_and_send_new_offers(offers: list[Offer]):
         await Offer.add_all(offers)
 
     user = await User.get()
-    offers = await user.get_new_offers()
+    if not (user_offers := await user.get_new_offers()):
+        return
 
     try:
         _send_offers(offers)
-        await user.set_last_sent_offer_id(offers[-1].id)
+        await user.set_last_sent_offer_id(user_offers[-1].id)
     except TelegramError:
         pass
 

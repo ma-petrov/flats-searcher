@@ -1,16 +1,15 @@
 from __future__ import annotations
+from typing import Iterable
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, values, column, Integer, cast, ARRAY
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
-    AsyncSession,
 )
 
 from conf import POSTGRES_URL
-from sqlalchemy import update
 
 
 async_engine = create_async_engine(POSTGRES_URL, echo=True)
@@ -43,9 +42,13 @@ class Offer(BaseModel):
     __tablename__ = "offer"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    offer_id: Mapped[str]
-    link: Mapped[str]
-    fee: Mapped[int]
+    offer_id: Mapped[int] = mapped_column(unique=True)
+    fee: Mapped[int] = mapped_column(nullable=True)
+    stats: Mapped[str] = mapped_column(default="")
+
+    @property
+    def link(self) -> str:
+        return "https://www.cian.ru/rent/flat/"
 
     @classmethod
     async def get_last_offer_id(cls):
@@ -53,11 +56,19 @@ class Offer(BaseModel):
         return await cls.execute(query)
     
     @classmethod
-    async def filter_new_offers(cls, offer_ids: list[str]) -> list[str | None]:
-        query = select(cls.offer_id).where(cls.offer_id.in_(offer_ids))
+    async def filter_new_offers(cls, offer_ids: list[int]) -> list[int | None]:
+        """Возвращает список идентификаторов объявлений, которых нет в БД."""
+        ids = cast(offer_ids, ARRAY(Integer))
+        cte = select(func.unnest(ids).column_valued("offer_id"))
+        query = (
+            select(cte.c.offer_id)
+            .select_from(cte)
+            .join(cls, onclause=cte.c.offer_id == cls.offer_id, isouter=True)
+            .where(cls.offer_id == None)
+            .order_by(cte.c.offer_id)
+        )
         result = await cls.execute(query)
-        old_offers = result.scalars().all()
-        return list(set(offer_ids) - set(old_offers))
+        return result.scalars().all()
 
 
 class User(BaseModel):

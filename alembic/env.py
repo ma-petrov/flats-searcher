@@ -1,3 +1,6 @@
+import sys
+sys.path.append("src")
+
 from logging.config import fileConfig
 
 from environs import Env

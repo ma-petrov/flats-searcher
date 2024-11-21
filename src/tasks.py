@@ -48,7 +48,7 @@ async def get_new_offers():
         logger.info("ARTICLES_PARSED", articles_number=len(articles))
 
         # Парсинг ссылок офферов
-        offer_links = {}
+        offer_ids = []
         for article in articles:
             offer_card = article.find("div", attrs={"data-testid": "offer-card"})
             offer_link = offer_card.find("a")["href"]
@@ -57,31 +57,13 @@ async def get_new_offers():
                 logger.error("INCORRECT_LINK", offer_link=offer_link)
                 continue
 
-            offer_links[searched.group(1)] = searched.group(0)
+            offer_ids.append(int(searched.group(1)))
 
         # Ислключение офферов, которые уже есть в БД
-        new_offer_ids = await Offer.filter_new_offers(list(offer_links.keys()))
-        offer_links = {k: v for k, v in offer_links.items() if k in new_offer_ids}
-
-        if not offer_links:
-            logger.info("NO_NEW_OFFERS")
+        if not (offer_ids := await Offer.filter_new_offers(offer_ids)):
             return
-        
-        # Парсинг новых офферов
-        for offer_id, offer_link in offer_links.items():
-            offer = _parse_offer(offer_link)
-            offer.offer_id = offer_id
 
-            if offer.fee is not None and offer.fee > FEE_THRESHOLD:
-                logger.info("TOO_HIGH_FEE", offer=offer)
-                continue
-
-            offers.append(offer)
-
-            # TODO: добавить поддержку сохранения даты публикации
-            # date_container = article.find("div", attrs={"data-name": "TimeLabel"})
-            # pub_date = date_container.find("span", text=time_pattern).text
-
+        offers = [_parse_offer(i) for i in offer_ids]
         await _save_and_send_new_offers(offers)
 
     except Exception:
@@ -89,13 +71,25 @@ async def get_new_offers():
         send_telegram(OOPS_MESSAGE)
 
 
-def _parse_offer(link: str) -> Offer:
-    offer = Offer(link=link, fee=0)
+def _parse_offer(offer_id: int) -> Offer:
+    offer = Offer(offer_id=offer_id)
+    link = f"{offer.link}{offer_id}"
 
     response = reguest_with_proxy(link)
     offer_soup = BeautifulSoup(response.text, 'html.parser')
 
-    for offer_fact_item in offer_soup.findAll("div", attrs={"data-name": "OfferFactItem"}):
+    # Парсинг кол-ва просмотров
+    if stats := offer_soup.find(
+        "button",
+        attrs={"data-name": "OfferStats"},
+    ):
+        offer.stats = stats.text
+
+    # Парсинг размера комиссии
+    for offer_fact_item in offer_soup.findAll(
+        "div",
+        attrs={"data-name": "OfferFactItem"},
+    ):
         if "Комисси" in offer_fact_item.text:
             fee_text = list(offer_fact_item)[2].text
             if (fee := offer_fee_pattern.search(fee_text)) is not None:
@@ -154,9 +148,18 @@ async def _save_and_send_new_offers(offers: list[Offer]):
         pass
 
 
-def _send_offers(offers: list[tuple[Offer, ...]]):
+def _send_offers(offers: list[Offer]):
     for offer in offers:
-        send_telegram(f"{offer.link}\nКомиссия: {offer.fee or 0}%")
+
+        if offer.fee is not None and offer.fee > FEE_THRESHOLD:
+            logger.info("TOO_HIGH_FEE", offer=offer)
+            continue
+
+        send_telegram(
+            f"{offer.link}{offer.id}\n"
+            f"{offer.stats}\n"
+            f"Комиссия: {offer.fee or "NA"}%"
+        )
 
 
 def _load_params(params_file: str) -> dict:

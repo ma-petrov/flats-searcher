@@ -25,6 +25,10 @@ async def main():
         if not DEBUG:
             send_telegram("Начинаем парсить...")
 
+        # почему-то шедулер сначала ждет 5 минут, поэтому запускаем сами 1 раз
+        # чтобы не ждать 5 минут первого запуска
+        await get_new_offers()
+
         scheduler.start()
         
         # Keep the main thread alive

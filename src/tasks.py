@@ -158,7 +158,7 @@ def _send_offers(offers: list[Offer]):
         send_telegram(
             f"{offer.stats}\n"
             f"Комиссия: {offer.fee or "NA"}%\n"
-            f"{offer.link}{offer.id}"
+            f"{offer.link}{offer.offer_id}"
         )
 
 

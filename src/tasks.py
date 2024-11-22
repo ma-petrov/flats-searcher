@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from models import Offer
 from api import reguest_with_proxy
 from telegram import TelegramError, send_telegram
-from conf import CIAN_URL, OOPS_MESSAGE, FEE_THRESHOLD
+from conf import CIAN_URL, OOPS_MESSAGE, FEE_THRESHOLD, VIEWS_THRESHOLD
 from models import User
 
 
@@ -19,6 +19,7 @@ logger = get_logger(__name__)
 offer_link_pattern = re.compile(r"https://www.cian.ru/rent/flat/([0-9]+)")
 offer_fee_pattern = re.compile(r"(\d+)%")
 summary_pattern = re.compile(r"Найдено (\d+) объявлени[еяй]")
+views_pattern = re.compile(r"(\d+) уникальны[хй]")
 time_pattern = re.compile(r"\d{2}:\d{2}")
 
 
@@ -151,14 +152,26 @@ async def _save_and_send_new_offers(offers: list[Offer]):
 def _send_offers(offers: list[Offer]):
     for offer in offers:
 
+        disable_notification = False
+
         if offer.fee is not None and offer.fee > FEE_THRESHOLD:
             logger.info("TOO_HIGH_FEE", offer=offer)
             continue
 
+        if (
+            (views := views_pattern.search(offer.stats)) is not None
+            and int(views.group(1)) > VIEWS_THRESHOLD
+        ):
+            logger.info("TOO_MANY_VIEWS", offer=offer)
+            disable_notification = True
+
         send_telegram(
-            f"{offer.stats}\n"
-            f"Комиссия: {offer.fee or "NA"}%\n"
-            f"{offer.link}{offer.offer_id}"
+            (
+                f"{offer.stats}\n"
+                f"Комиссия: {offer.fee or "NA"}%\n"
+                f"{offer.link}{offer.offer_id}"
+            ),
+            disable_notification=disable_notification,
         )
 
 

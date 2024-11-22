@@ -27,3 +27,4 @@ TG_CHAT_ID = env.str("TG_CHAT_ID", "")
 
 # constants
 FEE_THRESHOLD = 50
+VIEWS_THRESHOLD = 100

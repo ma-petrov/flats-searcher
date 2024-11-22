@@ -12,9 +12,16 @@ class TelegramError(Exception):
     pass
 
 
-def send_telegram(text: str):
-    url = TELEGRAM_URL + TG_TOKEN + '/sendMessage'
-    data = {'chat_id': TG_CHAT_ID, 'text': text}
+def send_telegram(
+    text: str,
+    disable_notification: bool | None = False,
+):
+    url = TELEGRAM_URL + TG_TOKEN + "/sendMessage"
+    data = {
+        "chat_id": TG_CHAT_ID, 
+        "text": text,
+        "disable_notification": disable_notification,
+    }
 
     if DEBUG:
         logger.info("MESSAGE_SENT", text=text)

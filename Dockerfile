@@ -25,5 +25,3 @@ RUN poetry install --no-dev
 
 # Create folders, and files for a project:
 COPY . /flats-searcher/
-
-WORKDIR /flats-searcher/src

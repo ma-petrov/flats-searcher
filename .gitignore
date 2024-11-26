@@ -8,4 +8,5 @@
 *__pycache__*
 
 # Application
-*.csv
+*.pem
+data/certbot/*

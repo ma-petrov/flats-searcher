@@ -6,7 +6,7 @@ volumes:
 x-base: &base
   build:
     context: .
-    dockerfile: bot.Dockerfile
+    dockerfile: Dockerfile
   environment:
     - TG_TOKEN=${TG_TOKEN}
     - TG_CHAT_ID=${TG_CHAT_ID}
@@ -14,14 +14,29 @@ x-base: &base
     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bot}
 
 services:
-  bot:
+  parser:
     <<: *base
     profiles: [app]
-    command: sh -c "alembic upgrade head && python scheduler.py"
+    command: sh -c "alembic upgrade head && cd src && python scheduler.py"
     depends_on:
       database:
         condition: service_healthy
     restart: unless-stopped
+
+  bot:
+    <<: *base
+    profiles: [bot]
+    command: sh -c "python bot.py"
+
+  webapp:
+    image: nginx:1.23.3
+    # монтируем директорию nginx и сертификат с ключом
+    volumes:
+      - ./src/webapp/static:/static
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
 
   database:
     image: postgres:latest

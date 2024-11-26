@@ -22,8 +22,9 @@ MIGRATION_POSTGRES_URL = (
 PATH = "/Users/petrov/Repositories/cian-flat-searcher/"
 CIAN_URL = "https://www.cian.ru/cat.php"
 TELEGRAM_URL = "https://api.telegram.org/bot"
-TG_TOKEN = env.str("TG_TOKEN", "")
+BOT_TOKEN = env.str("TG_TOKEN", "")
 TG_CHAT_ID = env.str("TG_CHAT_ID", "")
+WEBAPP_URL = env.str("WEBAPP_URL", "localhost:8080")
 
 # constants
 FEE_THRESHOLD = 50

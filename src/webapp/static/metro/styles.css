@@ -1,0 +1,94 @@
+/* styles.css */
+:root {
+    --tg-theme-bg-color: #fff;
+    --tg-theme-text-color: #000;
+    --tg-theme-button-color: #2481cc;
+    --tg-theme-button-text-color: #fff;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.map-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.controls button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#searchStation {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    width: 200px;
+}
+
+.metro-map {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    touch-action: none;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
+
+.metro-line {
+    fill: none;
+    stroke-width: 4;
+}
+
+.station-circle {
+    fill: white;
+    stroke-width: 2;
+    cursor: pointer;
+}
+
+.station-label {
+    font-size: 12px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.station-circle:hover,
+.station-label:hover {
+    filter: brightness(0.8);
+}
+
+.selected-station {
+    stroke-width: 6;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}

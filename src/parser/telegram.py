@@ -2,7 +2,7 @@ import requests
 
 from structlog import get_logger
 
-from conf import TELEGRAM_URL, TG_TOKEN, TG_CHAT_ID, DEBUG
+from conf import TELEGRAM_URL, BOT_TOKEN, TG_CHAT_ID, DEBUG
 
 
 logger = get_logger(__name__)
@@ -16,7 +16,7 @@ def send_telegram(
     text: str,
     disable_notification: bool | None = False,
 ):
-    url = TELEGRAM_URL + TG_TOKEN + "/sendMessage"
+    url = TELEGRAM_URL + BOT_TOKEN + "/sendMessage"
     data = {
         "chat_id": TG_CHAT_ID, 
         "text": text,

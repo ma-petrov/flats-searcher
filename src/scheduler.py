@@ -1,7 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from structlog import get_logger
-from tasks import get_new_offers, send_telegram
+from parser.tasks import get_new_offers, send_telegram
 from conf import DEBUG
 import asyncio
 

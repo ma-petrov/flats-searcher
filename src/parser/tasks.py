@@ -6,11 +6,10 @@ from datetime import datetime
 from structlog import get_logger
 from bs4 import BeautifulSoup
 
-from models import Offer
-from api import reguest_with_proxy
-from telegram import TelegramError, send_telegram
+from parser.api import reguest_with_proxy
+from parser.telegram import TelegramError, send_telegram
 from conf import CIAN_URL, OOPS_MESSAGE, FEE_THRESHOLD, VIEWS_THRESHOLD
-from models import User
+from models import User, Offer
 
 
 logger = get_logger(__name__)

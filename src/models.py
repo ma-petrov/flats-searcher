@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Iterable
 
-from sqlalchemy import func, select, values, column, Integer, cast, ARRAY
+from sqlalchemy import func, select, Integer, cast, ARRAY
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import (

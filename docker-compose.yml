@@ -32,7 +32,7 @@ services:
     image: nginx:1.23.3
     # монтируем директорию nginx и сертификат с ключом
     volumes:
-      - ./src/webapp/static:/static
+      - ./src/webapp/static:/etc/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"

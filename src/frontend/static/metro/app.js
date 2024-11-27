@@ -168,12 +168,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return station ? station.name : null;
         }).filter(Boolean);
 
-        if (selectedStationsList.length > 0) {
-            tg.sendData(JSON.stringify({
-                selected_stations: selectedStationsList
-            }));
-            tg.close();
-        }
+        tg.sendData(JSON.stringify({
+            selected_stations: selectedStationsList
+        }));
+
+        tg.close();
     });
 
     cancelButton.addEventListener("click", (e) => {

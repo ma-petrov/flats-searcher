@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const svg = document.getElementById('metroSvg');
+    const svg = document.getElementById('metro-svg');
     let scale = 1;
     let translateX = 0;
     let translateY = 0;
@@ -79,22 +79,22 @@ document.addEventListener('DOMContentLoaded', function() {
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
-    svg.addEventListener('wheel', zoom);
+    // svg.addEventListener('wheel', zoom);
 
     // Touch events
     svg.addEventListener('touchstart', startDrag);
     svg.addEventListener('touchmove', drag);
     svg.addEventListener('touchend', endDrag);
 
-    document.getElementById('zoomIn').addEventListener('click', () => {
-        scale *= 1.2;
-        updateTransform();
-    });
+    // document.getElementById('zoomIn').addEventListener('click', () => {
+    //     scale *= 1.2;
+    //     updateTransform();
+    // });
 
-    document.getElementById('zoomOut').addEventListener('click', () => {
-        scale *= 0.8;
-        updateTransform();
-    });
+    // document.getElementById('zoomOut').addEventListener('click', () => {
+    //     scale *= 0.8;
+    //     updateTransform();
+    // });
 
     function startDrag(e) {
         isDragging = true;
@@ -145,26 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
             circle.classList.add('selected-station');
         }
     }
-
-    // Search functionality
-    const searchInput = document.getElementById('searchStation');
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const stations = document.querySelectorAll('.station-label');
-        
-        stations.forEach(station => {
-            const name = station.textContent.toLowerCase();
-            const circle = document.querySelector(`[data-station-id="${station.dataset.stationId}"]`);
-            
-            if (name.includes(searchTerm)) {
-                station.style.opacity = '1';
-                if (circle) circle.style.opacity = '1';
-            } else {
-                station.style.opacity = '0.3';
-                if (circle) circle.style.opacity = '0.3';
-            }
-        });
-    });
 
     // Helper function to find station by ID
     function findStationById(stationId) {

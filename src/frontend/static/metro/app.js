@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.getElementById("submitButton");
     const cancelButton = document.getElementById("cancelButton");
     
-    submitButton.onClick(() => {
+    submitButton.addEventListener("click", (e) => {
         const selectedStationsList = Array.from(selectedStations).map(id => {
             const station = findStationById(id);
             return station ? station.name : null;
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    cancelButton.onClick(() => {
+    cancelButton.addEventListener("click", (e) => {
         tg.close();
     });
 });

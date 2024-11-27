@@ -1,5 +1,5 @@
 import sys
-sys.path.append("src")
+sys.path.append("src/backend/")
 
 from logging.config import fileConfig
 
@@ -8,7 +8,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from models import BaseModel
+from src.backend.models import BaseModel
 
 env = Env()
 

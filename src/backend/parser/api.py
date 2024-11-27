@@ -12,7 +12,7 @@ from parser.telegram import send_telegram
 logger = get_logger(__name__)
 
 
-PROXI_CONFIG_PATH = "proxies.json"
+PROXI_CONFIG_PATH = "parser/proxies.json"
 
 
 class Server(BaseModel):

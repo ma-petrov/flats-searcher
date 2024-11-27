@@ -8,7 +8,7 @@ x-base: &base
     context: .
     dockerfile: Dockerfile
   environment:
-    - TG_TOKEN=${TG_TOKEN}
+    - BOT_TOKEN=${BOT_TOKEN}
     - TG_CHAT_ID=${TG_CHAT_ID}
     - POSTGRES_HOST=${POSTGRES_HOST:-database}
     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bot}
@@ -17,11 +17,10 @@ services:
   parser:
     <<: *base
     profiles: [app]
-    command: sh -c "alembic upgrade head && cd src && python scheduler.py"
+    command: sh -c "alembic upgrade head && cd src/backend && python scheduler.py"
     depends_on:
       database:
         condition: service_healthy
-    restart: unless-stopped
 
   bot:
     <<: *base
@@ -31,7 +30,7 @@ services:
   nginx:
     image: nginx:1-alpine
     volumes:
-      - ./src/frontend/static:/usr/share/nginx/html
+      - ./src/frontend/static:/etc/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot

@@ -18,10 +18,9 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Copy only requirements to cache them in docker layer
 WORKDIR /flats-searcher
-COPY poetry.lock pyproject.toml /flats-searcher/
+COPY poetry.lock pyproject.toml alembic.ini /flats-searcher/
+COPY ./alembic/ /flats-searcher/alembic/
+COPY ./src/backend/ /flats-searcher/src/backend/
 
 # Project initialization:
 RUN poetry install --no-dev
-
-# Create folders, and files for a project:
-COPY . /flats-searcher/

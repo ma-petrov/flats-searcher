@@ -17,18 +17,6 @@ from conf import BOT_TOKEN, WEBAPP_URL
 logger = getLogger(__name__)
 
 
-# Data structure for user filters
-@dataclass
-class UserFilter:
-    created_at: datetime
-    keywords: list[str]
-    min_price: float = 0
-    max_price: float = float('inf')
-    is_active: bool = True
-
-# Store user filters
-user_filters: Dict[int, UserFilter] = {}
-
 # Initialize bot and dispatcher
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()

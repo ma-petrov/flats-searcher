@@ -10,3 +10,4 @@
 # Application
 *.pem
 data/certbot/*
+*.DS_Store

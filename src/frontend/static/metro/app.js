@@ -159,8 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initMap();
 
     // Send selected stations to Telegram when done
-    tg.MainButton.setText('Confirm Selection');
-    tg.MainButton.onClick(() => {
+    const submitButton = document.getElementById("submitButton");
+    const cancelButton = document.getElementById("cancelButton");
+    
+    submitButton.onClick(() => {
         const selectedStationsList = Array.from(selectedStations).map(id => {
             const station = findStationById(id);
             return station ? station.name : null;
@@ -172,5 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }));
             tg.close();
         }
+    });
+
+    cancelButton.onClick(() => {
+        tg.close();
     });
 });

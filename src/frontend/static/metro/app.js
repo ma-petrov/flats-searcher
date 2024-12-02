@@ -123,6 +123,59 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTransform();
     }
 
+    let initialDistance = 0;
+    let initialScale = 1;
+
+    // Add these event listeners for touch gestures
+    svg.addEventListener('touchstart', handleTouchStart);
+    svg.addEventListener('touchmove', handleTouchMove);
+    svg.addEventListener('touchend', handleTouchEnd);
+
+    function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            // Prevent default to avoid page zooming
+            e.preventDefault();
+            // Calculate initial distance between two fingers
+            initialDistance = getTouchDistance(e.touches);
+            initialScale = scale;
+        } else {
+            startDrag(e);
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            // Calculate new distance between touches
+            const currentDistance = getTouchDistance(e.touches);
+            
+            // Calculate new scale
+            scale = initialScale * (currentDistance / initialDistance);
+            
+            // You might want to add min/max limits
+            scale = Math.min(Math.max(scale, 0.5), 3);
+            
+            updateTransform();
+        } else {
+            drag(e);
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (e.touches.length < 2) {
+            initialDistance = 0;
+        }
+        endDrag();
+    }
+
+    function getTouchDistance(touches) {
+        return Math.hypot(
+            touches[1].clientX - touches[0].clientX,
+            touches[1].clientY - touches[0].clientY
+        );
+    }
+
+
     function updateTransform() {
         svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }

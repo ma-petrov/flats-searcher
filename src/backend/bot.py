@@ -27,12 +27,14 @@ async def cmd_start(message: Message):
         "Настройки",
         reply_markup=builder.as_markup()
     )
+    logger.info("open settings")
 
 
 @router.message(F.web_app_data)
 async def handle_webapp_data(message: Message):
     data = json.loads(message.web_app_data.data)
     logger.info(data)
+    await message.answer("Настройким метро сохранены")
 
 
 dp.include_router(router)

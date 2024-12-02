@@ -222,10 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }).filter(Boolean);
 
         tg.sendData(JSON.stringify({
-            selected_stations: selectedStationsList
+            action: "selected_stations",
+            selected_stations: selectedStationsList,
         }));
-
-        tg.close();
     });
 
     cancelButton.addEventListener("click", (e) => {
@@ -233,4 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     tg.ready();
+
+    if (!window.Telegram || !window.Telegram.WebApp) {
+        console.error('Telegram WebApp is not properly initialized');
+    }
 });

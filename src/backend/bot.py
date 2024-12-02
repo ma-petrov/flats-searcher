@@ -1,8 +1,8 @@
 import json
 import asyncio
+import logging
 
-from logging import getLogger
-from aiogram import Bot, Dispatcher, Router
+from aiogram import F, Bot, Dispatcher, Router
 from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -10,7 +10,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from conf import BOT_TOKEN, WEBAPP_URL
 
 
-logger = getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -28,8 +29,11 @@ async def cmd_start(message: Message):
     )
 
 
+@router.message(F.web_app_data)
+async def handle_webapp_data(message: Message):
+    data = json.loads(message.web_app_data.data)
+    logger.info(data)
+
+
 dp.include_router(router)
-
-
-logger.info("Starting bot")
 asyncio.run(dp.start_polling(bot))

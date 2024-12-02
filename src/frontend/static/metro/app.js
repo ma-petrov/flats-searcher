@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
-    // svg.addEventListener('wheel', zoom);
+    document.addEventListener('wheel', zoom);
 
     // Touch events
     svg.addEventListener('touchstart', startDrag);
@@ -178,4 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cancelButton.addEventListener("click", (e) => {
         tg.close();
     });
+
+    tg.ready();
 });

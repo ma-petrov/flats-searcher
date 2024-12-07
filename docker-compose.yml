@@ -10,14 +10,16 @@ x-base: &base
   environment:
     - BOT_TOKEN=${BOT_TOKEN}
     - TG_CHAT_ID=${TG_CHAT_ID}
-    - POSTGRES_HOST=${POSTGRES_HOST:-database}
+    - POSTGRES_HOST=${POSTGRES_HOST:-localhost}
     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bot}
+    - DEBUG=${DEBUG:-False}
+    - WEBAPP_URL=${WEBAPP_URL:-localhost:8080}
 
 services:
   parser:
     <<: *base
     profiles: [app]
-    command: sh -c "alembic upgrade head && cd src/backend && python scheduler.py"
+    command: sh -c "alembic upgrade head && src/backend/scheduler.py"
     depends_on:
       database:
         condition: service_healthy
@@ -25,7 +27,7 @@ services:
   bot:
     <<: *base
     profiles: [bot]
-    command: sh -c "python bot.py"
+    command: sh -c "python src/backend/bot.py"
 
   nginx:
     image: nginx:1-alpine

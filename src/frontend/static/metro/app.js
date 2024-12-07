@@ -225,6 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
             action: "selected_stations",
             selected_stations: selectedStationsList,
         }));
+
+        console.log("data was sent");
     });
 
     cancelButton.addEventListener("click", (e) => {
